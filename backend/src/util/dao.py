@@ -98,6 +98,7 @@ class DAO:
 
         # if the filter contains attributes that are IDs, then they need to be converted
         if toid and len(toid) > 0:
+            
             for i in toid:
                 converted = []
                 for element in filter[i]:
