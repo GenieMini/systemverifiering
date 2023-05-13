@@ -3,6 +3,7 @@ import os
 import shutil
 
 from pymongo.errors import WriteError
+from pymongo.errors import DuplicateKeyError
 
 from src.util.dao import DAO
 
@@ -40,6 +41,22 @@ class TestDAO():
         assert content["firstName"] == "johnny"
         assert content["lastName"] == "test"
         assert content["email"] == "johnny.test@test.com"
+
+    """
+        Duplicate error
+    """
+
+    def test_create_duplicate(self, sut):
+        # sut is dao
+        dummy_user = {
+            "firstName": "johnny",
+            "lastName": "test",
+            "email": "johnny.test@test.com",
+            }
+
+        with pytest.raises(DuplicateKeyError):
+            sut.create(dummy_user)
+            sut.create(dummy_user)
 
     """
         Missing values
@@ -84,12 +101,13 @@ class TestDAO():
 
     """
         Incorrect Bson
+        -Boolean
     """
 
-    def test_create_with_incorrect_firstName(self, sut):
+    def test_create_with_boolean_firstName(self, sut):
         # sut is dao
         dummy_user = {
-            "firstName": 123,
+            "firstName": True,
             "lastName": "test",
             "email": "johnny.test@test.com",
             }
@@ -97,34 +115,34 @@ class TestDAO():
         with pytest.raises(WriteError):
             sut.create(dummy_user)
 
-    def test_create_with_incorrect_lastName(self, sut):
+    def test_create_with_boolean_lastName(self, sut):
         # sut is dao
         dummy_user = {
             "firstName": "johnny",
-            "lastName": 123,
+            "lastName": True,
             "email": "johnny.test@test.com",
             }
 
         with pytest.raises(WriteError):
             sut.create(dummy_user)
 
-    def test_create_with_incorrect_email(self, sut):
+    def test_create_with_boolean_email(self, sut):
         # sut is dao
         dummy_user = {
             "firstName": "johnny",
             "lastName": "test",
-            "email": 123,
+            "email": True,
             }
 
         with pytest.raises(WriteError):
             sut.create(dummy_user)
 
-    def test_create_with_incorrect_everything(self, sut):
+    def test_create_with_boolean_everything(self, sut):
         # sut is dao
         dummy_user = {
-            "firstName": 123,
-            "lastName": 123,
-            "email": 123,
+            "firstName": True,
+            "lastName": True,
+            "email": True,
             }
 
         with pytest.raises(WriteError):
