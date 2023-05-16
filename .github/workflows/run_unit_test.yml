@@ -7,13 +7,13 @@ on:
 
 jobs:
   unittest:
-    name: Run Unit test
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
     steps:
-      - name: Install node
+      - name: Python
+        with:
+          python-version: 3.8
         run: |
           node --version
           py --version
+          python --version
+          python3 --version
