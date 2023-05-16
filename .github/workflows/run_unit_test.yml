@@ -16,4 +16,4 @@ jobs:
       - name: Install node
         run: |
           node --version
-          node --version
+          py --version
