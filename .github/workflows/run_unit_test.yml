@@ -1,0 +1,19 @@
+name: UnitTest
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  unittest:
+    name: Run Unit test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Install node
+        run: |
+          node --version
+          node --version
