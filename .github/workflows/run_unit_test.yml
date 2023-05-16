@@ -15,8 +15,7 @@ jobs:
           python-version: 3.8
       - name: Where
         run: |
-          ls
-          pwd
+          tree
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
