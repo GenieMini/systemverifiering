@@ -9,10 +9,11 @@ jobs:
   unittest:
     runs-on: ubuntu-latest
     steps:
-      - name: Python
+      - name: Setup Python
         uses: actions/setup-python@v3
         with:
           python-version: 3.8
+      - name: Run Version
         run: |
           node --version
           py --version
