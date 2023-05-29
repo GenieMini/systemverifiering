@@ -29,6 +29,7 @@ def test_empty_string():
         Raise error on empty string
     """
     mocked_object = mock.MagicMock()
+    mocked_object.find.return_value = ["test@gmail.se"]
     sut = UserController(dao=mocked_object)
     email = ''
 
@@ -40,6 +41,7 @@ def test_no_input():
         Raise error on no input
     """
     mocked_object = mock.MagicMock()
+    mocked_object.find.return_value = ["test@gmail.se"]
     sut = UserController(dao=mocked_object)
 
     with pytest.raises(Exception):
