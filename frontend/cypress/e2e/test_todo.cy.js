@@ -1,5 +1,5 @@
-function createUserAndTask() {
-    cy.fixture('user').as('userJson').then(function (userJson) {
+function createUser() {
+    cy.fixture('user').as('userJson').then((userJson) => {
         cy.request({
             url: 'http://localhost:5000/users/create',
             form: true,
@@ -8,25 +8,28 @@ function createUserAndTask() {
         }).then((response) => {
             const userID = response.body['_id']['$oid'];
             cy.wrap(userID).as('userID');
+        })
+    })
+}
 
-            cy.fixture('tasks')
-            .then((task) => {
-                task['userid'] = userID;
+function createTask() {
+    cy.get('@userID').then(userID => {
+        cy.fixture('tasks')
+        .then((task) => {
+            task['userid'] = userID;
 
-                cy.request({
-                    url: 'http://localhost:5000/tasks/create',
-                    method: 'POST',
-                    form: true,
-                    body: task
-                })
+            cy.request({
+                url: 'http://localhost:5000/tasks/create',
+                method: 'POST',
+                form: true,
+                body: task
             })
-
         })
     })
 }
 
 function loginUser() {
-    cy.visit('http://localhost:3000/')
+    
     cy.get('#email').type("test@test.com")
     cy.get('form').submit()
 }
@@ -48,7 +51,9 @@ function deleteUser() {
 describe('Users task testing', () => {
     // setup
     beforeEach(() => {
-        createUserAndTask()
+        cy.visit('localhost:3000')
+        createUser()
+        createTask()
         loginUser()
         selectTask()
     })
