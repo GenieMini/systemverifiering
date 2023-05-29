@@ -12,21 +12,26 @@ function createUser() {
 }
 
 function loginUser() {
-    // Visit localhost:3000 (or corresponding url)
     cy.visit('http://localhost:3000/')
-    // Enter Email in email field
     cy.get('#email').type("test@test.com")
-    // Click “login”
     cy.get('form').submit()
 }
 
 function createTask() {
-    // Enter Title in title field
-    cy.get("#title").type("test")
-    // Enter URL in url field
-    cy.get("#url").type("QH2-TGUlwu4")
-    // Click “create”
-    cy.get("form").submit()
+    cy.get('@userID').then(userID => {
+        const data = new URLSearchParams();
+        data.append('title', "test");
+        data.append('description', '(add a description here)');
+        data.append('userid', userID);
+        data.append('url', "QH2-TGUlwu4");
+        data.append('todos', ['Watch video']);
+
+        cy.request({
+            url: 'http://localhost:5000/tasks/create',
+            method: 'post',
+            body: data
+        })
+    })
 }
 
 function selectTask() {
@@ -45,8 +50,8 @@ function deleteUser() {
 describe('Users task testing', () => {
     beforeEach(() => {
         createUser()
-        loginUser()
         createTask()
+        loginUser()
         selectTask()
     })
 
@@ -55,41 +60,45 @@ describe('Users task testing', () => {
     })
 
     // R8UC1
-    it('Test user inputs description', () => {
-        // Enter Label in ‘New todo’ field
-        cy.get('.inline-form').find('input[type=text]').type('New todo')
-        // Click “create”
-        cy.get('.inline-form').find('input[type=submit]').click()
-        // Check that there are 2 ‘todo’-items
-        cy.get('.todo-item').should(list => expect(list).to.have.length(2))
-        // Check that the “create” button is disabled
-        cy.get('.inline-form').find('input[type=submit]').should('be.disabled')
+    it('Check that there are 1 ‘todo’-items', () => {
+        cy.get('.todo-item').should(list => expect(list).to.have.length(1))
     });
 
-    // R8UC3
-    it('Test remove todo', () => {
-        // Check that there are 2 ‘todo’-items
+    it('Check that there are 1 ‘todo’-items after adding 1 ‘todo’-item', () => {
+        cy.get('.inline-form').find('input[type=text]').type('New todo')
+        cy.get('.inline-form').find('input[type=submit]').click()
         cy.get('.todo-item').should(list => expect(list).to.have.length(2))
-        // Press remove on first ‘todo’
-        cy.get('.remover').first().click().click()
-        // Check that there is 1 ‘todo’-item
+    })
+
+    it('Check that the input field is empty', () => {
+        cy.get('.inline-form').find('input[type=text]').should('have.value', '');
+    })
+
+    it('Check that the “create” button is disabled', () => {
+        cy.get('.inline-form').find('input[type=submit]').should('be.disabled')
+    })
+
+    // R8UC3
+    it('Check that there are 2 ‘todo’-items', () => {
+        cy.get('.todo-item').should(list => expect(list).to.have.length(2))
+    })
+
+    it('Check that there are 1 ‘todo’-items after removing 1 ‘todo’-item', () => {
+        cy.get('.remover').first().click()
         cy.get('.todo-item').should(list => expect(list).to.have.length(1))
     });
 
     // R8UC2
-    it('Test checker unchecked', () => {
-        // Check that the first checkbox is unchecked
+    it('Check that the first checkbox is unchecked', () => {
         cy.get('.checker').first().should('have.class', 'unchecked')
-        // Click the first checkbox
-        cy.get('.checker').first().click().click()
-        // Check that the first checkbox is checked
-        cy.get('.checker').first().should('have.class', 'checked')
-        // Check that the text of the first ‘todo’ has stricken through text-decoration
-        cy.get('.todo-list .editable').first().should('have.css', 'text-decoration-line').and('include', 'line-through')
     })
 
-    // R8UC2-reset
-    it('Reset checked', () => {
-        cy.get('.checker').first().click().click().click()
+    it('Check that the first checkbox is checked after clicked', () => {
+        cy.get('.checker').first().click()
+        cy.get('.checker').first().should('have.class', 'checked')
+    })
+
+    it('Check that the text of the first ‘todo’ has stricken through text-decoration', () => {
+        cy.get('.todo-list .editable').first().should('have.css', 'text-decoration-line').and('include', 'line-through')
     })
 })
