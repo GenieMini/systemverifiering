@@ -3,7 +3,6 @@ import os
 import shutil
 
 from pymongo.errors import WriteError
-from pymongo.errors import DuplicateKeyError
 
 from src.util.dao import DAO
 
@@ -54,7 +53,7 @@ class TestDAO():
             "email": "johnny.test@test.com",
             }
 
-        with pytest.raises(DuplicateKeyError):
+        with pytest.raises(WriteError):
             sut.create(dummy_user)
             sut.create(dummy_user)
 
