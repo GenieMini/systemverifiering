@@ -12,15 +12,27 @@ TEST_DAO_USER = {
     "lastName": "outagourte"
 }
 
-def test_raise_invalid_email():
+def test_email_missing_at_sign():
     """
-        Checks for a raise ValueError when an invalid email string
+        Checks for a raise ValueError when an email is missing @
     """
     mocked_object = mock.MagicMock()
     mocked_object.find.return_value = [TEST_DAO_USER]
     controller = UserController(dao=mocked_object)
 
-    invalid_email = "invalid"
+    invalid_email = "invalid.com"
+    with pytest.raises(ValueError):
+        controller.get_user_by_email(email=invalid_email)
+
+def test_email_missing_period_in_domain():
+    """
+        Checks for a raise ValueError when an email is missing ".<host>"
+    """
+    mocked_object = mock.MagicMock()
+    mocked_object.find.return_value = [TEST_DAO_USER]
+    controller = UserController(dao=mocked_object)
+
+    invalid_email = "invalid@domain"
     with pytest.raises(ValueError):
         controller.get_user_by_email(email=invalid_email)
 
@@ -33,23 +45,12 @@ def test_empty_string():
     sut = UserController(dao=mocked_object)
     email = ''
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         sut.get_user_by_email(email)
-
-def test_no_input():
-    """
-        Raise error on no input
-    """
-    mocked_object = mock.MagicMock()
-    mocked_object.find.return_value = ["test@gmail.se"]
-    sut = UserController(dao=mocked_object)
-
-    with pytest.raises(Exception):
-        sut.get_user_by_email()
 
 def test_find_user():
     """
-        Return correct  on correct input
+        Return correct on correct input
     """
     mocked_object = mock.MagicMock()
     mocked_object.find.return_value = [TEST_DAO_USER]
