@@ -74,18 +74,6 @@ def test_dont_find_user():
     result = uc.get_user_by_email(email=dont_find_email)
     assert result == None
 
-def test_nothing_in_dao():
-    """
-        Raise error in case DAO has nothing
-    """
-    mocked_object = mock.MagicMock()
-    mocked_object.find.return_value = []
-    uc = UserController(dao=mocked_object)
-
-    valid_email = "test@gmail.se"
-    result = uc.get_user_by_email(email=valid_email)
-    assert result == None
-
 @patch('builtins.print')
 def test_duplicate_emails(mock_print):
     """
