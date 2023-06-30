@@ -1,35 +1,53 @@
+/*
+    Cypress tests for Requirement 8
+*/
+
+let userID = '';
+let taskID = '';
+
 function createUser() {
-    cy.fixture('user').as('userJson').then((userJson) => {
+    cy.fixture('user')
+    .then((userJson) => {
         cy.request({
             url: 'http://localhost:5000/users/create',
             form: true,
             body: userJson,
             method: 'POST'
         }).then((response) => {
-            const userID = response.body['_id']['$oid'];
-            cy.wrap(userID).as('userID');
+            userID = response.body['_id']['$oid'];
         })
     })
 }
 
-function createTask() {
-    cy.get('@userID').then(userID => {
-        cy.fixture('tasks')
-        .then((task) => {
-            task['userid'] = userID;
+function createTaskAndTodo() {
+    cy.fixture('tasks')
+    .then((task) => {
 
+        task['userid'] = userID;
+
+        // Create Task
+        cy.request({
+            url: 'http://localhost:5000/tasks/create',
+            method: 'POST',
+            form: true,
+            body: task
+        })
+        .then((response) => {
+            // Create todo with "Done" state
+            taskID = response.body[0]['_id']['$oid'];
+            const data = `taskid=${taskID}&description=Example&done=true`;
             cy.request({
-                url: 'http://localhost:5000/tasks/create',
+                url: 'http://localhost:5000/todos/create',
                 method: 'POST',
-                form: true,
-                body: task
+                body: data,
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             })
         })
     })
+    
 }
 
 function loginUser() {
-    
     cy.get('#email').type("test@test.com")
     cy.get('form').submit()
 }
@@ -39,12 +57,10 @@ function selectTask() {
 }
 
 function deleteUser() {
-    cy.get('@userID').then(userID => {
-        cy.log("Delete user")
-        cy.request({
-            url: `http://localhost:5000/users/${userID}`,
-            method: 'DELETE'
-        })
+    cy.log("Delete user")
+    cy.request({
+        url: `http://localhost:5000/users/${userID}`,
+        method: 'DELETE'
     })
 }
 
@@ -53,7 +69,7 @@ describe('Users task testing', () => {
     beforeEach(() => {
         cy.visit('localhost:3000')
         createUser()
-        createTask()
+        createTaskAndTodo()
         loginUser()
         selectTask()
     })
@@ -63,55 +79,36 @@ describe('Users task testing', () => {
     })
 
     // R8UC1
-    it('Check that there are 1 ‘todo’-items', () => {
-        cy.get('.todo-item').should('have.length', 1)
-    });
+    it('Check if new todo is appended to the bottom of list and is set to Active', () => {
+        const todo_description = 'New todo';
 
-    it('Check that there are 2 ‘todo’-items after adding 1 ‘todo’-item', () => {
-        cy.get('.inline-form').find('input[type=text]').type('New todo')
+        cy.get('.inline-form').find('input[type=text]').type(todo_description)
         cy.get('.inline-form').find('input[type=submit]').click()
-        cy.get('.todo-item').should('have.length', 2)
+        cy.get('.todo-item .editable').last().should("have.text", todo_description).and('not.have.css', 'text-decoration-line', 'line-through')
     })
 
-    it('Check that the input field is empty', () => {
-        cy.get('.inline-form').find('input[type=text]').should('have.value', '');
-    })
-
-    it('Check that the “add” button is disabled', () => {
-        cy.get('.inline-form').find('input[type=submit]').should('be.disabled')
-    })
-
-    it('Check that the “add” button is disabled even after adding and removing string', () => {
-        cy.get('.inline-form').find('input[type=text]').type('New todo')
+    it('Check if the “add” button is disabled when text field is empty', () => {
         cy.get('.inline-form').find('input[type=text]').clear()
         cy.get('.inline-form').find('input[type=submit]').should('be.disabled')
     })
 
     // R8UC2
-    it('Check that the first checkbox is unchecked', () => {
-        cy.get('.checker').first().should('have.class', 'unchecked')
+    it('Check if the todo changes from Active to Done after clicking icon', () => { // fails
+        cy.get('.checker').first().click() // set to Done
+        cy.get('.todo-list .editable').first().should('have.css', 'text-decoration-line', 'line-through')
     })
 
-    it('Check that the first checkbox is checked after clicked', () => { // fails
-        cy.get('.checker').first().click() // checks
-        cy.get('.checker').first().should('have.class', 'checked')
-    })
-
-    it('Check that the first checkbox is unchecked after clicked twice', () => { // fails
-        cy.get('.checker').first().click() // checks
-        cy.get('.checker').first().click() // unchecks
-        cy.get('.checker').first().should('have.class', 'unchecked')
-    })
-
-    it('Check that the text of the first ‘todo’ has stricken through text-decoration', () => { // fails
-        cy.get('.checker').first().click() // checks
-        cy.get('.todo-list .editable').first().should('have.css', 'text-decoration-line').and('include', 'line-through')
+    it('Check if the todo changes from Done to Active after clicking icon', () => { // fails
+        // .last() refers to todo with Done
+        cy.get('.checker').last().click() // Set to Active
+        cy.get('.todo-list .editable').last().should('not.have.css', 'text-decoration-line', 'line-through')
     })
 
     // R8UC3
+    it('Check if todo-item gets removed', () => { // fails
+        const remove_todo = 'Watch';
 
-    it('Check that there are 0 ‘todo’-items after removing 1 ‘todo’-item', () => { // fails
-        cy.get('.remover').first().click()
-        cy.get('.todo-item').should('not.exist')
+        cy.get('.todo-item').contains("span", remove_todo).parent().find('.remover').click()
+        cy.get('.todo-item').contains("span", remove_todo).should('not.exist')
     });
 })
